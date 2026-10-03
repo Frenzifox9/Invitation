@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche d'Événement - Eventify</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(150,150,150,0.4);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body id="body-container" class="min-h-screen transition-colors duration-500 relative bg-slate-950 text-slate-100 flex flex-col justify-between">
+
+    <div id="floating-decorations" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="relative z-20 flex justify-between items-center px-6 py-4 max-w-7xl mx-auto w-full">
+        <div class="flex items-center gap-3">
+            <div id="nav-logo-badge" class="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 transform hover:scale-105">
+                <i id="nav-logo-icon" class="fa-solid fa-ghost text-xl"></i>
+            </div>
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-widest opacity-75">Événement</span>
+                <h1 id="nav-site-title" class="text-lg font-bold truncate max-w-[200px] sm:max-w-xs">Mon Événement</h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-3" id="nav-actions-container">
+            <button onclick="openAuthModal()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none" id="edit-button-style">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span class="hidden sm:inline">Modifier le site</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-8 flex-grow w-full">
+        
+        <!-- Hero Section with Image & Title -->
+        <div class="relative rounded-3xl overflow-hidden shadow-2xl mb-8 border border-white/10 backdrop-blur-xl transition-all duration-500 group" id="hero-card-style">
+            <div class="absolute inset-0 z-0">
+                <img id="display-image" src="" alt="Événement" class="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700" onerror="this.src='https://placehold.co/1200x600/1e1b4b/cbd5e1?text=Aucune+Image'">
+                <div id="hero-gradient-overlay" class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
+            </div>
+            
+            <div class="relative z-10 p-6 sm:p-12 md:p-16 flex flex-col items-center text-center">
+                <div id="theme-badge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase mb-6 shadow-md animate-bounce-slow">
+                    <i id="theme-badge-icon" class="fa-solid fa-pumpkin"></i>
+                    <span id="theme-badge-text">Thème Halloween</span>
+                </div>
+                
+                <h1 id="display-title" class="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 drop-shadow-lg leading-tight">
+                    Votre Titre d'Événement
+                </h1>
+                
+                <p id="display-description" class="text-base sm:text-lg max-w-2xl opacity-90 mb-8 font-light leading-relaxed">
+                    Ajoutez une description captivante pour vos invités en modifiant le site.
+                </p>
+
+                <!-- Countdown Timer Box -->
+                <div class="w-full max-w-xl bg-black/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/15 shadow-2xl mb-8">
+                    <div class="text-xs uppercase tracking-widest font-bold opacity-75 mb-3 flex items-center justify-center gap-2">
+                        <i class="fa-regular fa-clock"></i> Temps restant avant le grand début
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 sm:gap-4 text-center">
+                        <div class="bg-white/10 rounded-xl p-2 sm:p-3 border border-white/10">
+                            <span id="cd-days" class="text-2xl sm:text-4xl font-black block">00</span>
+                            <span class="text-[10px] sm:text-xs uppercase tracking-wider opacity-75">Jours</span>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-2 sm:p-3 border border-white/10">
+                            <span id="cd-hours" class="text-2xl sm:text-4xl font-black block">00</span>
+                            <span class="text-[10px] sm:text-xs uppercase tracking-wider opacity-75">Heures</span>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-2 sm:p-3 border border-white/10">
+                            <span id="cd-minutes" class="text-2xl sm:text-4xl font-black block">00</span>
+                            <span class="text-[10px] sm:text-xs uppercase tracking-wider opacity-75">Minutes</span>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-2 sm:p-3 border border-white/10">
+                            <span id="cd-seconds" class="text-2xl sm:text-4xl font-black block">00</span>
+                            <span class="text-[10px] sm:text-xs uppercase tracking-wider opacity-75">Secondes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="#details-section" class="px-8 py-3.5 rounded-xl font-bold shadow-xl transition-all duration-300 transform hover:-translate-y-1" id="hero-cta-btn">
+                        <i class="fa-solid fa-circle-info mr-2"></i> Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="details-section" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Date & Time Card (Start & End) -->
+            <div class="rounded-3xl p-6 border shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-[1.02]" id="card-datetime">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 shadow-md" id="icon-box-1">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <h3 class="text-xs font-bold uppercase tracking-widest opacity-75 mb-1">Date & Horaires</h3>
+                <div class="space-y-2 mt-2">
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold opacity-60 block">Début :</span>
+                        <p id="display-start-datetime" class="text-sm sm:text-base font-bold">À définir</p>
+                    </div>
+                    <div id="end-datetime-container" class="pt-1 border-t border-white/10">
+                        <span class="text-[10px] uppercase font-semibold opacity-60 block">Fin (Ça se finit quand) :</span>
+                        <p id="display-end-datetime" class="text-sm sm:text-base font-bold">Non spécifié</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Card (Google Maps URL clickable) -->
+            <div class="rounded-3xl p-6 border shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-[1.02]" id="card-location">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 shadow-md" id="icon-box-2">
+                    <i class="fa-solid fa-location-dot"></i>
+                </div>
+                <h3 class="text-xs font-bold uppercase tracking-widest opacity-75 mb-1">Lieu de l'événement</h3>
+                <p id="display-location-text" class="text-base font-bold mb-3">Lieu à préciser</p>
+                <div id="display-location-link-wrapper">
+                    <span class="text-xs opacity-60 italic">Aucun lien Google Maps</span>
+                </div>
+            </div>
+
+            <!-- Participants Card -->
+            <div class="rounded-3xl p-6 border shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-[1.02] md:col-span-1" id="card-participants">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 shadow-md" id="icon-box-3">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <h3 class="text-xs font-bold uppercase tracking-widest opacity-75 mb-1">Invité(e)s Présents</h3>
+                <p id="display-participants-count" class="text-lg font-bold mb-3">0 invité(e)</p>
+                <!-- Interactive guest list preview badges -->
+                <div id="display-guests-container" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                    <span class="text-xs opacity-60 italic">Aucun invité pour le moment</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Additional Information Section -->
+        <div class="rounded-3xl p-8 border shadow-xl backdrop-blur-md mb-8" id="card-additional">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow" id="icon-box-4">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <h2 class="text-xl font-bold">Informations Supplémentaires</h2>
+            </div>
+            <div id="display-additional" class="opacity-90 leading-relaxed space-y-3 font-light text-base">
+                <p class="italic opacity-70">Aucune information supplémentaire renseignée pour le moment.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="relative z-10 text-center py-8 text-xs opacity-60 border-t border-white/10 max-w-5xl mx-auto w-full">
+        <p class="font-medium tracking-wide">Créé par Frenzifox</p>
+    </footer>
+
+    <!-- Authentication Modal (Password Check) -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl relative transform transition-all scale-95 opacity-0" id="auth-modal-content">
+            <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-orange-500/20 text-orange-400 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner border border-orange-500/30">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1">Espace Administrateur</h3>
+                <p class="text-xs text-slate-400">Entrez votre code d'accès pour modifier l'événement</p>
+            </div>
+            
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="auth-code-input" placeholder="Code d'accès" required class="w-full px-4 py-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-center tracking-widest text-lg font-mono">
+                </div>
+                <div id="auth-error-msg" class="text-red-400 text-xs text-center font-medium hidden">
+                    Code incorrect
+                </div>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold shadow-lg shadow-orange-600/30 transition-all duration-300 transform active:scale-95">
+                    Valider
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Modal (Event Editing & Share) -->
+    <div id="dashboard-modal" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md hidden transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-3xl shadow-2xl relative my-auto max-h-[90vh] flex flex-col transform transition-all scale-95 opacity-0 overflow-hidden" id="dashboard-modal-content">
+            
+            <!-- Dashboard Header -->
+            <div class="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-950/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Tableau de Bord</h3>
+                        <p class="text-xs text-slate-400">Modifiez votre événement en direct</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openShareModal()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg transition-all">
+                        <i class="fa-solid fa-share-nodes"></i> Partager
+                    </button>
+                    <button onclick="closeDashboardModal()" class="w-9 h-9 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Form Body -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-grow">
+                <form id="edit-form" onsubmit="handleSaveEvent(event)" class="space-y-5">
+                    
+                    <!-- Style Selection Grid -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Choisir le Thème & Style Visuel</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="theme-selector-grid">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Title -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Titre de l'événement</label>
+                            <input type="text" id="edit-title" required placeholder="Ex: Soirée Anniversaire" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                        <!-- Image URL -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">URL de l'image (Illustration)</label>
+                            <input type="url" id="edit-image" placeholder="https://exemple.com/image.jpg" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+
+                    <!-- Dates & Times: Start and End -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Date et Heure de Début</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="date" id="edit-start-date" required class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-500">
+                                <input type="time" id="edit-start-time" required class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Date et Heure de Fin (Ça se finit quand ?)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="date" id="edit-end-date" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-500">
+                                <input type="time" id="edit-end-time" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Google Maps URL -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Nom ou Adresse du Lieu</label>
+                            <input type="text" id="edit-location-text" required placeholder="Ex: Salle des Fêtes, Paris" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">URL Google Maps (Lien cliquable)</label>
+                            <input type="url" id="edit-location-url" placeholder="https://maps.google.com/..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+
+                    <!-- Guests Management Section -->
+                    <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Gestion des Invités (Qui est invité ?)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="new-guest-input" placeholder="Nom de l'invité (ex: Marie Dupont)" class="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500">
+                            <button type="button" onclick="addGuestFromDashboard()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl shadow transition-all shrink-0 flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-plus"></i> Ajouter
+                            </button>
+                        </div>
+                        <div id="dashboard-guests-list" class="flex flex-wrap gap-2 pt-2 max-h-40 overflow-y-auto">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Description courte</label>
+                        <textarea id="edit-description" rows="2" required placeholder="Décrivez votre événement en quelques mots..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500"></textarea>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Informations supplémentaires</label>
+                        <textarea id="edit-additional" rows="3" placeholder="Informations pratiques, dress code, cadeaux..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500"></textarea>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold shadow-lg shadow-purple-600/30 transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="share-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl relative transform transition-all scale-95 opacity-0" id="share-modal-content">
+            <button onclick="closeShareModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner border border-blue-500/30">
+                    <i class="fa-solid fa-share-nodes"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1">Partager l'événement</h3>
+                <p class="text-xs text-slate-400">Partagez ce lien unique avec vos invités. Ils pourront consulter l'événement en mode sécurisé.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl p-2">
+                    <input type="text" id="share-link-input" readonly class="bg-transparent text-xs text-slate-300 w-full px-2 focus:outline-none font-mono truncate">
+                    <button onclick="copyShareLink()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow transition-all flex items-center gap-1.5 shrink-0">
+                        <i class="fa-regular fa-copy"></i> Copier
+                    </button>
+                </div>
+                <div id="copy-success-badge" class="text-emerald-400 text-xs text-center font-medium hidden flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-check"></i> Lien copié dans le presse-papier !
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // Theme definitions with all styles
+        const themes = {
+            halloween: {
+                id: 'halloween',
+                name: '🎃 Halloween',
+                badgeText: 'Thème Halloween',
+                badgeIcon: 'fa-solid fa-pumpkin',
+                bgClass: 'bg-slate-950 text-slate-100',
+                navLogoBadge: 'bg-orange-500 text-slate-950',
+                navLogoIcon: 'fa-solid fa-ghost',
+                editBtnStyle: 'bg-orange-500 hover:bg-orange-600 text-slate-950 font-bold',
+                heroCardStyle: 'bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-orange-950/40 border-orange-500/30 shadow-orange-950/50',
+                heroGradientOverlay: 'bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent',
+                themeBadge: 'bg-orange-500/20 border border-orange-500/50 text-orange-400',
+                heroCtaBtn: 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-slate-950 font-black shadow-orange-600/30',
+                cardDatetime: 'bg-slate-900/80 border-orange-500/20 shadow-orange-950/20',
+                cardLocation: 'bg-slate-900/80 border-orange-500/20 shadow-orange-950/20',
+                cardParticipants: 'bg-slate-900/80 border-orange-500/20 shadow-orange-950/20',
+                cardAdditional: 'bg-slate-900/80 border-orange-500/20 shadow-orange-950/20',
+                iconBox1: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+                iconBox2: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+                iconBox3: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+                iconBox4: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+                guestBadgeStyle: 'bg-orange-500/20 border border-orange-500/30 text-orange-300',
+                floatingIcons: ['fa-ghost', 'fa-spider', 'fa-skull', 'fa-bat']
+            },
+            dark: {
+                id: 'dark',
+                name: '🌌 Sombre',
+                badgeText: 'Thème Sombre & Néon',
+                badgeIcon: 'fa-solid fa-moon',
+                bgClass: 'bg-slate-950 text-blue-100',
+                navLogoBadge: 'bg-blue-600 text-white',
+                navLogoIcon: 'fa-solid fa-moon',
+                editBtnStyle: 'bg-blue-600 hover:bg-blue-500 text-white font-bold',
+                heroCardStyle: 'bg-gradient-to-br from-slate-900/90 via-blue-950/30 to-slate-900/90 border-blue-500/30 shadow-blue-950/50',
+                heroGradientOverlay: 'bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent',
+                themeBadge: 'bg-blue-500/20 border border-blue-500/50 text-blue-400',
+                heroCtaBtn: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-blue-600/30',
+                cardDatetime: 'bg-slate-900/80 border-blue-500/20 shadow-blue-950/20',
+                cardLocation: 'bg-slate-900/80 border-blue-500/20 shadow-blue-950/20',
+                cardParticipants: 'bg-slate-900/80 border-blue-500/20 shadow-blue-950/20',
+                cardAdditional: 'bg-slate-900/80 border-blue-500/20 shadow-blue-950/20',
+                iconBox1: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+                iconBox2: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+                iconBox3: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+                iconBox4: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+                guestBadgeStyle: 'bg-blue-500/20 border border-blue-500/30 text-blue-300',
+                floatingIcons: ['fa-star', 'fa-meteor', 'fa-satellite', 'fa-moon']
+            },
+            elegant: {
+                id: 'elegant',
+                name: '✨ Élégant',
+                badgeText: 'Thème Luxe & Doré',
+                badgeIcon: 'fa-solid fa-gem',
+                bgClass: 'bg-zinc-950 text-zinc-100',
+                navLogoBadge: 'bg-amber-500 text-zinc-950',
+                navLogoIcon: 'fa-solid fa-crown',
+                editBtnStyle: 'bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold',
+                heroCardStyle: 'bg-gradient-to-br from-zinc-900/90 via-zinc-900/70 to-amber-950/30 border-amber-500/40 shadow-amber-950/30',
+                heroGradientOverlay: 'bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent',
+                themeBadge: 'bg-amber-500/20 border border-amber-500/50 text-amber-400',
+                heroCtaBtn: 'bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-zinc-950 font-bold shadow-amber-600/30',
+                cardDatetime: 'bg-zinc-900/80 border-amber-500/20 shadow-amber-950/10',
+                cardLocation: 'bg-zinc-900/80 border-amber-500/20 shadow-amber-950/10',
+                cardParticipants: 'bg-zinc-900/80 border-amber-500/20 shadow-amber-950/10',
+                cardAdditional: 'bg-zinc-900/80 border-amber-500/20 shadow-amber-950/10',
+                iconBox1: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+                iconBox2: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+                iconBox3: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+                iconBox4: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+                guestBadgeStyle: 'bg-amber-500/20 border border-amber-500/30 text-amber-300',
+                floatingIcons: ['fa-gem', 'fa-sparkles', 'fa-crown', 'fa-star']
+            },
+            party: {
+                id: 'party',
+                name: '🎉 Fête',
+                badgeText: 'Thème Festif',
+                badgeIcon: 'fa-solid fa-champagne-glasses',
+                bgClass: 'bg-rose-950 text-rose-50',
+                navLogoBadge: 'bg-pink-500 text-white',
+                navLogoIcon: 'fa-solid fa-music',
+                editBtnStyle: 'bg-pink-600 hover:bg-pink-500 text-white font-bold',
+                heroCardStyle: 'bg-gradient-to-br from-rose-900/90 via-pink-950/50 to-rose-950/90 border-pink-500/40 shadow-pink-950/50',
+                heroGradientOverlay: 'bg-gradient-to-t from-rose-950 via-rose-950/60 to-transparent',
+                themeBadge: 'bg-pink-500/20 border border-pink-500/50 text-pink-300',
+                heroCtaBtn: 'bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold shadow-pink-600/30',
+                cardDatetime: 'bg-rose-900/60 border-pink-500/20 shadow-rose-950/20',
+                cardLocation: 'bg-rose-900/60 border-pink-500/20 shadow-rose-950/20',
+                cardParticipants: 'bg-rose-900/60 border-pink-500/20 shadow-rose-950/20',
+                cardAdditional: 'bg-rose-900/60 border-pink-500/20 shadow-rose-950/20',
+                iconBox1: 'bg-pink-500/20 text-pink-300 border border-pink-500/30',
+                iconBox2: 'bg-pink-500/20 text-pink-300 border border-pink-500/30',
+                iconBox3: 'bg-pink-500/20 text-pink-300 border border-pink-500/30',
+                iconBox4: 'bg-pink-500/20 text-pink-300 border border-pink-500/30',
+                guestBadgeStyle: 'bg-pink-500/20 border border-pink-500/30 text-pink-300',
+                floatingIcons: ['fa-compact-disc', 'fa-music', 'fa-cake-candles', 'fa-champagne-glasses']
+            },
+            colorful: {
+                id: 'colorful',
+                name: '🌈 Coloré',
+                badgeText: 'Thème Vif & Dynamique',
+                badgeIcon: 'fa-solid fa-palette',
+                bgClass: 'bg-violet-950 text-violet-50',
+                navLogoBadge: 'bg-violet-500 text-white',
+                navLogoIcon: 'fa-solid fa-rainbow',
+                editBtnStyle: 'bg-violet-600 hover:bg-violet-500 text-white font-bold',
+                heroCardStyle: 'bg-gradient-to-br from-violet-900/90 via-purple-950/50 to-indigo-950/90 border-violet-500/40 shadow-violet-950/50',
+                heroGradientOverlay: 'bg-gradient-to-t from-violet-950 via-violet-950/60 to-transparent',
+                themeBadge: 'bg-violet-500/20 border border-violet-500/50 text-violet-300',
+                heroCtaBtn: 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold shadow-violet-600/30',
+                cardDatetime: 'bg-violet-900/60 border-violet-500/20 shadow-violet-950/20',
+                cardLocation: 'bg-violet-900/60 border-violet-500/20 shadow-violet-950/20',
+                cardParticipants: 'bg-violet-900/60 border-violet-500/20 shadow-violet-950/20',
+                cardAdditional: 'bg-violet-900/60 border-violet-500/20 shadow-violet-950/20',
+                iconBox1: 'bg-violet-500/20 text-violet-300 border border-violet-500/30',
+                iconBox2: 'bg-violet-500/20 text-violet-300 border border-violet-500/30',
+                iconBox3: 'bg-violet-500/20 text-violet-300 border border-violet-500/30',
+                iconBox4: 'bg-violet-500/20 text-violet-300 border border-violet-500/30',
+                guestBadgeStyle: 'bg-violet-500/20 border border-violet-500/30 text-violet-300',
+                floatingIcons: ['fa-palette', 'fa-rainbow', 'fa-shapes', 'fa-paintbrush']
+            },
+            modern: {
+                id: 'modern',
+                name: '🧊 Moderne',
+                badgeText: 'Thème Minimaliste',
+                badgeIcon: 'fa-solid fa-cube',
+                bgClass: 'bg-neutral-900 text-neutral-100',
+                navLogoBadge: 'bg-neutral-100 text-neutral-900',
+                navLogoIcon: 'fa-solid fa-cube',
+                editBtnStyle: 'bg-neutral-100 hover:bg-white text-neutral-900 font-bold',
+                heroCardStyle: 'bg-gradient-to-br from-neutral-800/90 via-neutral-900/80 to-neutral-800/90 border-neutral-700 shadow-neutral-950/50',
+                heroGradientOverlay: 'bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent',
+                themeBadge: 'bg-neutral-100/10 border border-neutral-100/30 text-neutral-200',
+                heroCtaBtn: 'bg-neutral-100 hover:bg-white text-neutral-900 font-bold shadow-neutral-100/10',
+                cardDatetime: 'bg-neutral-800/80 border-neutral-700 shadow-neutral-950/20',
+                cardLocation: 'bg-neutral-800/80 border-neutral-700 shadow-neutral-950/20',
+                cardParticipants: 'bg-neutral-800/80 border-neutral-700 shadow-neutral-950/20',
+                cardAdditional: 'bg-neutral-800/80 border-neutral-700 shadow-neutral-950/20',
+                iconBox1: 'bg-neutral-100/10 text-neutral-200 border border-neutral-100/20',
+                iconBox2: 'bg-neutral-100/10 text-neutral-200 border border-neutral-100/20',
+                iconBox3: 'bg-neutral-100/10 text-neutral-200 border border-neutral-100/20',
+                iconBox4: 'bg-neutral-100/10 text-neutral-200 border border-neutral-100/20',
+                guestBadgeStyle: 'bg-neutral-100/10 border border-neutral-100/20 text-neutral-200',
+                floatingIcons: ['fa-cube', 'fa-square', 'fa-circle', 'fa-vector-square']
+            },
+            nature: {
+                id: 'nature',
+                name: '🌿 Nature',
+                badgeText: 'Thème Forêt & Doux',
+                badgeIcon: 'fa-solid fa-leaf',
+                bgClass: 'bg-emerald-950 text-emerald-50',
+                navLogoBadge: 'bg-emerald-600 text-white',
+                navLogoIcon: 'fa-solid fa-seedling',
+                editBtnStyle: 'bg-emerald-600 hover:bg-emerald-500 text-white font-bold',
+                heroCardStyle: 'bg-gradient-to-br from-emerald-900/90 via-emerald-950/60 to-green-950/90 border-emerald-500/40 shadow-emerald-950/50',
+                heroGradientOverlay: 'bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-transparent',
+                themeBadge: 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-300',
+                heroCtaBtn: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-emerald-600/30',
+                cardDatetime: 'bg-emerald-900/60 border-emerald-500/20 shadow-emerald-950/20',
+                cardLocation: 'bg-emerald-900/60 border-emerald-500/20 shadow-emerald-950/20',
+                cardParticipants: 'bg-emerald-900/60 border-emerald-500/20 shadow-emerald-950/20',
+                cardAdditional: 'bg-emerald-900/60 border-emerald-500/20 shadow-emerald-950/20',
+                iconBox1: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+                iconBox2: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+                iconBox3: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+                iconBox4: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+                guestBadgeStyle: 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300',
+                floatingIcons: ['fa-leaf', 'fa-seedling', 'fa-tree', 'fa-spa']
+            }
+        };
+
+        // Default empty event data
+        let emptyEventData = {
+            title: "Mon Événement",
+            description: "Ajoutez une description captivante pour vos invités en modifiant le site.",
+            startDate: "",
+            startTime: "",
+            endDate: "",
+            endTime: "",
+            locationText: "Lieu à préciser",
+            locationUrl: "",
+            guests: [],
+            additional: "",
+            image: "",
+            theme: "halloween"
+        };
+
+        let isSharedView = false;
+        let currentEvent = JSON.parse(localStorage.getItem('eventify_data')) || emptyEventData;
+
+        // On load
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedData = urlParams.get('data');
+            if (sharedData) {
+                try {
+                    const decoded = JSON.parse(decodeURIComponent(escape(atob(sharedData))));
+                    currentEvent = decoded;
+                    if (!currentEvent.guests) currentEvent.guests = [];
+                    isSharedView = true;
+                    // Hide edit button for viewers
+                    document.getElementById('nav-actions-container').innerHTML = `
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 text-xs font-semibold backdrop-blur-sm border border-white/10">
+                            <i class="fa-solid fa-eye"></i> Mode Invité
+                        </span>
+                    `;
+                } catch(e) {
+                    console.error("Erreur de décodage du lien partagé", e);
+                }
+            }
+
+            renderEvent();
+            renderThemeSelector();
+            startCountdown();
+            generateFloatingDecorations();
+        });
+
+        // Render current event data to DOM and apply theme
+        function renderEvent() {
+            const theme = themes[currentEvent.theme] || themes.halloween;
+
+            // Apply body background
+            document.getElementById('body-container').className = `min-h-screen transition-colors duration-500 relative ${theme.bgClass} flex flex-col justify-between`;
+
+            // Apply header styling
+            document.getElementById('nav-logo-badge').className = `w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 transform hover:scale-105 ${theme.navLogoBadge}`;
+            document.getElementById('nav-logo-icon').className = `${theme.navLogoIcon} text-xl`;
+            document.getElementById('nav-site-title').innerText = currentEvent.title || "Mon Événement";
+            
+            const editBtn = document.getElementById('edit-button-style');
+            if (editBtn) {
+                editBtn.className = `flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none ${theme.editBtnStyle}`;
+            }
+
+            // Hero card & content
+            document.getElementById('hero-card-style').className = `relative rounded-3xl overflow-hidden shadow-2xl mb-8 border backdrop-blur-xl transition-all duration-500 group ${theme.heroCardStyle}`;
+            document.getElementById('hero-gradient-overlay').className = `absolute inset-0 ${theme.heroGradientOverlay}`;
+            document.getElementById('display-image').src = currentEvent.image || "";
+            document.getElementById('theme-badge').className = `inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase mb-6 shadow-md animate-bounce-slow ${theme.themeBadge}`;
+            document.getElementById('theme-badge-icon').className = theme.badgeIcon;
+            document.getElementById('theme-badge-text').innerText = theme.badgeText;
+            document.getElementById('display-title').innerText = currentEvent.title || "Mon Événement";
+            document.getElementById('display-description').innerText = currentEvent.description || "Aucune description renseignée.";
+            document.getElementById('hero-cta-btn').className = `px-8 py-3.5 rounded-xl font-bold shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${theme.heroCtaBtn}`;
+
+            // Cards
+            document.getElementById('card-datetime').className = `rounded-3xl p-6 border shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-[1.02] ${theme.cardDatetime}`;
+            document.getElementById('card-location').className = `rounded-3xl p-6 border shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-[1.02] ${theme.cardLocation}`;
+            document.getElementById('card-participants').className = `rounded-3xl p-6 border shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-[1.02] md:col-span-1 ${theme.cardParticipants}`;
+            document.getElementById('card-additional').className = `rounded-3xl p-8 border shadow-xl backdrop-blur-md mb-8 ${theme.cardAdditional}`;
+
+            // Icons boxes
+            document.getElementById('icon-box-1').className = `w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 shadow-md ${theme.iconBox1}`;
+            document.getElementById('icon-box-2').className = `w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 shadow-md ${theme.iconBox2}`;
+            document.getElementById('icon-box-3').className = `w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 shadow-md ${theme.iconBox3}`;
+            document.getElementById('icon-box-4').className = `w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow ${theme.iconBox4}`;
+
+            // Date & Start / End formatting
+            let formattedStart = "À définir";
+            if (currentEvent.startDate) {
+                try {
+                    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    formattedStart = new Date(currentEvent.startDate).toLocaleDateString('fr-FR', opts);
+                    formattedStart = formattedStart.charAt(0).toUpperCase() + formattedStart.slice(1);
+                    if (currentEvent.startTime) formattedStart += ` à ${currentEvent.startTime}`;
+                } catch(e) {}
+            }
+            document.getElementById('display-start-datetime').innerText = formattedStart;
+
+            let formattedEnd = "Non spécifié";
+            if (currentEvent.endDate) {
+                try {
+                    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    formattedEnd = new Date(currentEvent.endDate).toLocaleDateString('fr-FR', opts);
+                    formattedEnd = formattedEnd.charAt(0).toUpperCase() + formattedEnd.slice(1);
+                    if (currentEvent.endTime) formattedEnd += ` à ${currentEvent.endTime}`;
+                } catch(e) {}
+            }
+            document.getElementById('display-end-datetime').innerText = formattedEnd;
+
+            // Location text & Maps link
+            document.getElementById('display-location-text').innerText = currentEvent.locationText || "Lieu à préciser";
+            const linkWrapper = document.getElementById('display-location-link-wrapper');
+            if (currentEvent.locationUrl && currentEvent.locationUrl.trim() !== "") {
+                linkWrapper.innerHTML = `
+                    <a href="${escapeHtml(currentEvent.locationUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs font-bold underline underline-offset-4 opacity-90 hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-map-location-dot">></i> Ouvrir sur Google Maps <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                `;
+            } else {
+                linkWrapper.innerHTML = `<span class="text-xs opacity-60 italic">Aucun lien Google Maps renseigné</span>`;
+            }
+
+            // Guests display
+            const count = currentEvent.guests ? currentEvent.guests.length : 0;
+            document.getElementById('display-participants-count').innerText = `${count} invité(e)${count > 1 ? 's' : ''}`;
+            
+            const guestsContainer = document.getElementById('display-guests-container');
+            guestsContainer.innerHTML = '';
+            if (count === 0) {
+                guestsContainer.innerHTML = `<span class="text-xs opacity-60 italic">Aucun invité pour le moment</span>`;
+            } else {
+                currentEvent.guests.forEach(guest => {
+                    const badge = document.createElement('span');
+                    badge.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${theme.guestBadgeStyle}`;
+                    badge.innerHTML = `<i class="fa-solid fa-user text-[10px] opacity-75"></i> ${escapeHtml(guest)}`;
+                    guestsContainer.appendChild(badge);
+                });
+            }
+
+            const additionalBox = document.getElementById('display-additional');
+            if (currentEvent.additional && currentEvent.additional.trim() !== "") {
+                additionalBox.innerHTML = `<p>${escapeHtml(currentEvent.additional).replace(/\n/g, '<br>')}</p>`;
+            } else {
+                additionalBox.innerHTML = `<p class="italic opacity-70">Aucune information supplémentaire renseignée pour le moment.</p>`;
+            }
+
+            generateFloatingDecorations();
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Render theme selection grid inside dashboard
+        function renderThemeSelector() {
+            const grid = document.getElementById('theme-selector-grid');
+            grid.innerHTML = '';
+            Object.values(themes).forEach(t => {
+                const isSelected = currentEvent.theme === t.id;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => selectTheme(t.id);
+                btn.className = `p-3 rounded-2xl border text-left transition-all flex flex-col gap-1 ${isSelected ? 'border-purple-500 bg-purple-500/20 ring-2 ring-purple-500/40' : 'border-slate-700 bg-slate-800/80 hover:bg-slate-800'}`;
+                btn.innerHTML = `
+                    <div class="font-bold text-xs text-white">${t.name}</div>
+                    <div class="text-[10px] text-slate-400 truncate">${t.badgeText}</div>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectTheme(themeId) {
+            currentEvent.theme = themeId;
+            renderThemeSelector();
+        }
+
+        // Render dashboard guests list for editing
+        function renderDashboardGuests() {
+            const listContainer = document.getElementById('dashboard-guests-list');
+            listContainer.innerHTML = '';
+            if (!currentEvent.guests || currentEvent.guests.length === 0) {
+                listContainer.innerHTML = `<span class="text-xs text-slate-500 italic">Aucun invité ajouté</span>`;
+                return;
+            }
+            currentEvent.guests.forEach((guest, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-xs text-slate-200';
+                tag.innerHTML = `
+                    <span>${escapeHtml(guest)}</span>
+                    <button type="button" onclick="removeGuest(${index})" class="text-red-400 hover:text-red-300 ml-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                listContainer.appendChild(tag);
+            });
+        }
+
+        function addGuestFromDashboard() {
+            const input = document.getElementById('new-guest-input');
+            const val = input.value.trim();
+            if (!val) return;
+            if (!currentEvent.guests) currentEvent.guests = [];
+            currentEvent.guests.push(val);
+            input.value = '';
+            renderDashboardGuests();
+        }
+
+        function removeGuest(index) {
+            currentEvent.guests.splice(index, 1);
+            renderDashboardGuests();
+        }
+
+        // Generate floating background icons
+        function generateFloatingDecorations() {
+            const container = document.getElementById('floating-decorations');
+            container.innerHTML = '';
+            const theme = themes[currentEvent.theme] || themes.halloween;
+            const icons = theme.floatingIcons;
+
+            for (let i = 0; i < 12; i++) {
+                const icon = document.createElement('div');
+                icon.className = `absolute text-xl sm:text-3xl opacity-10 animate-float`;
+                icon.innerHTML = `<i class="fa-solid ${icons[i % icons.length]}"></i>`;
+                icon.style.top = `${Math.random() * 100}%`;
+                icon.style.left = `${Math.random() * 100}%`;
+                icon.style.animationDuration = `${3 + Math.random() * 5}s`;
+                icon.style.animationDelay = `${Math.random() * 3}s`;
+                container.appendChild(icon);
+            }
+        }
+
+        // Countdown Timer Logic
+        function startCountdown() {
+            setInterval(() => {
+                if (!currentEvent.startDate || !currentEvent.startTime) {
+                    document.getElementById('cd-days').innerText = "00";
+                    document.getElementById('cd-hours').innerText = "00";
+                    document.getElementById('cd-minutes').innerText = "00";
+                    document.getElementById('cd-seconds').innerText = "00";
+                    return;
+                }
+
+                const eventDateTime = new Date(`${currentEvent.startDate}T${currentEvent.startTime}:00`);
+                const now = new Date();
+                const diff = eventDateTime - now;
+
+                if (diff <= 0) {
+                    document.getElementById('cd-days').innerText = "00";
+                    document.getElementById('cd-hours').innerText = "00";
+                    document.getElementById('cd-minutes').innerText = "00";
+                    document.getElementById('cd-seconds').innerText = "00";
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+                document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('cd-minutes').innerText = String(minutes).padStart(2, '0');
+                document.getElementById('cd-seconds').innerText = String(seconds).padStart(2, '0');
+            }, 1000);
+        }
+
+        // Auth Modal Control
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            const content = document.getElementById('auth-modal-content');
+            document.getElementById('auth-code-input').value = '';
+            document.getElementById('auth-error-msg').classList.add('hidden');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            const content = document.getElementById('auth-modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const inputCode = document.getElementById('auth-code-input').value.trim();
+            const errorMsg = document.getElementById('auth-error-msg');
+
+            if (inputCode === "Frenzifox0290") {
+                errorMsg.classList.add('hidden');
+                closeAuthModal();
+                openDashboardModal();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        // Dashboard Modal Control
+        function openDashboardModal() {
+            document.getElementById('edit-title').value = currentEvent.title || "";
+            document.getElementById('edit-description').value = currentEvent.description || "";
+            document.getElementById('edit-start-date').value = currentEvent.startDate || "";
+            document.getElementById('edit-start-time').value = currentEvent.startTime || "";
+            document.getElementById('edit-end-date').value = currentEvent.endDate || "";
+            document.getElementById('edit-end-time').value = currentEvent.endTime || "";
+            document.getElementById('edit-location-text').value = currentEvent.locationText || "";
+            document.getElementById('edit-location-url').value = currentEvent.locationUrl || "";
+            document.getElementById('edit-additional').value = currentEvent.additional || "";
+            document.getElementById('edit-image').value = currentEvent.image || "";
+            renderThemeSelector();
+            renderDashboardGuests();
+
+            const modal = document.getElementById('dashboard-modal');
+            const content = document.getElementById('dashboard-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeDashboardModal() {
+            const modal = document.getElementById('dashboard-modal');
+            const content = document.getElementById('dashboard-modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Save Event modifications
+        function handleSaveEvent(e) {
+            e.preventDefault();
+            currentEvent.title = document.getElementById('edit-title').value;
+            currentEvent.description = document.getElementById('edit-description').value;
+            currentEvent.startDate = document.getElementById('edit-start-date').value;
+            currentEvent.startTime = document.getElementById('edit-start-time').value;
+            currentEvent.endDate = document.getElementById('edit-end-date').value;
+            currentEvent.endTime = document.getElementById('edit-end-time').value;
+            currentEvent.locationText = document.getElementById('edit-location-text').value;
+            currentEvent.locationUrl = document.getElementById('edit-location-url').value;
+            currentEvent.additional = document.getElementById('edit-additional').value;
+            currentEvent.image = document.getElementById('edit-image').value;
+
+            localStorage.setItem('eventify_data', JSON.stringify(currentEvent));
+
+            renderEvent();
+            closeDashboardModal();
+        }
+
+        // Share Modal & Link Generation
+        function openShareModal() {
+            const modal = document.getElementById('share-modal');
+            const content = document.getElementById('share-modal-content');
+            
+            const jsonString = JSON.stringify(currentEvent);
+            const encoded = btoa(unescape(encodeURIComponent(jsonString)));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?data=${encodeURIComponent(encoded)}`;
+            
+            document.getElementById('share-link-input').value = shareUrl;
+            document.getElementById('copy-success-badge').classList.add('hidden');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeShareModal() {
+            const modal = document.getElementById('share-modal');
+            const content = document.getElementById('share-modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('share-link-input');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                const badge = document.getElementById('copy-success-badge');
+                badge.classList.remove('hidden');
+                setTimeout(() => badge.classList.add('hidden'), 3000);
+            } catch (err) {
+                console.error('Erreur lors de la copie', err);
+            }
+        }
+    </script>
+</body>
+</html>
